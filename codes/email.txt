@@ -1,0 +1,87 @@
+Assignment no 10
+Problem Statement : Classify the email using the binary classification method. Email Spam detection has two states: a)Normal State - Not Spam, b) Abnormal State - Spam. Use Support Vector Machine classification algorithm for classification. Analyze its performance. Dataset: The emails.csv dataset on the Kaggle 
+# Step 1: Import necessary libraries
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.svm import SVC
+from sklearn.metrics import classification_report, confusion_matrix
+from google.colab import files
+
+# Step 2: Upload the dataset from the local machine
+uploaded = files.upload()
+
+# Step 3: Load the uploaded email dataset into a pandas DataFrame
+df = pd.read_csv(next(iter(uploaded)))
+
+# Display the first few rows of the dataset
+print(df.head())
+
+# Step 4: Check for missing values and basic information about the dataset
+print("Missing values in each column:\n", df.isnull().sum())
+print("\nDataset Info:")
+print(df.info())
+
+# Step 5: Handle missing values (drop rows with missing values)
+df.dropna(inplace=True)  # This ensures no rows with NaN values are present
+
+# Step 6: Data preprocessing
+# Assuming the dataset has 'text' column for email content and 'label' column for spam classification
+# Renaming columns if necessary
+df.columns = ['label', 'text']
+
+# Convert labels to binary (0 for Normal, 1 for Spam)
+df['label'] = df['label'].map({'ham': 0, 'spam': 1})
+
+# Check for any NaN values in the label column after conversion
+print("Missing values in 'label' column after mapping:\n", df['label'].isnull().sum())
+
+# Drop any remaining rows where the label might be NaN after conversion
+df.dropna(subset=['label'], inplace=True)
+
+# Step 7: Feature extraction using TF-IDF Vectorization
+vectorizer = TfidfVectorizer()
+X = vectorizer.fit_transform(df['text']).toarray()  # Transform email text to TF-IDF features
+y = df['label']  # Labels
+
+# Ensure there are no NaN values in X and y
+print(f"NaN values in X: {np.isnan(X).sum()}")
+print(f"NaN values in y: {np.isnan(y).sum()}")
+
+# Step 8: Split the dataset into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Ensure there are no NaN values in training and test sets
+print(f"NaN values in X_train: {np.isnan(X_train).sum()}")
+print(f"NaN values in y_train: {np.isnan(y_train).sum()}")
+print(f"NaN values in X_test: {np.isnan(X_test).sum()}")
+print(f"NaN values in y_test: {np.isnan(y_test).sum()}")
+
+# Step 9: Train the Support Vector Machine (SVM) model
+model = SVC(kernel='linear')  # You can experiment with different kernels
+model.fit(X_train, y_train)
+
+# Step 10: Make predictions on the test set
+y_pred = model.predict(X_test)
+
+# Step 11: Evaluate the model's performance
+print("\nConfusion Matrix:")
+print(confusion_matrix(y_test, y_pred))
+
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred))
+
+# Step 12: Visualize the confusion matrix
+plt.figure(figsize=(8, 6))
+sns.heatmap(confusion_matrix(y_test, y_pred), annot=True, fmt='d', cmap='Blues',
+            xticklabels=['Normal', 'Spam'], yticklabels=['Normal', 'Spam'])
+plt.ylabel('Actual')
+plt.xlabel('Predicted')
+plt.title('Confusion Matrix')
+plt.show()
+
+
+

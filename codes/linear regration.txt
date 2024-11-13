@@ -1,0 +1,66 @@
+Assignment no 9
+Problem Statement : Create a Linear Regression Model using Python/R to predict home prices using Boston Housing Dataset
+# Step 1: Import necessary libraries
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn import metrics
+from google.colab import files
+
+# Step 2: Upload the dataset from the local machine
+uploaded = files.upload()
+
+# Step 3: Load the uploaded Boston Housing dataset into a pandas DataFrame
+df = pd.read_csv(next(iter(uploaded)))
+
+# Display the first few rows of the dataset
+print(df.head())
+
+# Step 4: Check the DataFrame columns to ensure correct selection of features and target
+print(df.columns)  # Display column names
+
+# Step 5: Check for missing values
+print("Missing values in each column:\n", df.isnull().sum())
+
+# Handle missing values - fill them with the mean of the respective column
+df.fillna(df.mean(), inplace=True)
+
+# Step 6: Separate features and target variable
+X = df.drop(columns=['medv'])  # Features (all columns except 'medv')
+y = df['medv']  # Target variable (median value of homes)
+
+# Step 7: Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Step 8: Train a Linear Regression model
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+# Step 9: Make predictions on the test set
+y_pred = model.predict(X_test)
+
+# Step 10: Evaluate the model
+print("Mean Absolute Error (MAE):", metrics.mean_absolute_error(y_test, y_pred))
+print("Mean Squared Error (MSE):", metrics.mean_squared_error(y_test, y_pred))
+print("Root Mean Squared Error (RMSE):", np.sqrt(metrics.mean_squared_error(y_test, y_pred)))
+
+# Step 11: Visualize the results
+plt.figure(figsize=(10, 6))
+plt.scatter(y_test, y_pred)
+plt.xlabel("Actual Prices (medv)")
+plt.ylabel("Predicted Prices (medv)")
+plt.title("Actual vs Predicted Prices")
+plt.plot([0, 50], [0, 50], '--r')  # Reference line
+plt.xlim([0, 50])
+plt.ylim([0, 50])
+plt.show()
+
+# Step 12: Print coefficients and intercept of the model
+print("Model Coefficients:", model.coef_)
+print("Model Intercept:", model.intercept_)
+
+
+

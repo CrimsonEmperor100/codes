@@ -1,0 +1,81 @@
+Assignment no 11
+Problem Statement : Implement K-Means clustering on a dataset. Determine the number of clusters using the elbow method.
+# Step 1: Import necessary libraries
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
+from google.colab import files
+
+# Step 2: Upload the dataset from the local machine
+uploaded = files.upload()
+
+# Step 3: Load the uploaded dataset into a pandas DataFrame
+# Assuming the file is named 'credit_card_data.csv' after upload
+df = pd.read_csv(next(iter(uploaded)))
+
+# Display the first few rows of the dataset to verify
+print(df.head())
+
+# Step 4: Check for missing values and basic information about the dataset
+print("Missing values in each column:\n", df.isnull().sum())
+print("\nDataset Info:")
+print(df.info())
+
+# Step 5: Handle missing values if necessary
+# For simplicity, we will drop rows with any missing values
+df = df.dropna()
+
+# Step 6: Select features for clustering (remove any unnecessary columns like Customer IDs)
+# Assuming the dataset has a 'CUST_ID' column which is not needed for clustering
+if 'CUST_ID' in df.columns:
+    df = df.drop(columns=['CUST_ID'])
+
+# Step 7: Standardize the features
+scaler = StandardScaler()
+scaled_features = scaler.fit_transform(df)
+
+# Step 8: Determine the number of clusters using the Elbow Method
+wcss = []  # Within-cluster sum of squares
+for i in range(1, 11):
+    kmeans = KMeans(n_clusters=i, init='k-means++', max_iter=300, n_init=10, random_state=42)
+    kmeans.fit(scaled_features)
+    wcss.append(kmeans.inertia_)
+
+# Step 9: Plot the Elbow Graph
+plt.figure(figsize=(8, 5))
+plt.plot(range(1, 11), wcss, marker='o', linestyle='--')
+plt.title('Elbow Method')
+plt.xlabel('Number of clusters')
+plt.ylabel('WCSS')
+plt.show()
+
+# Step 10: Choose the optimal number of clusters from the elbow graph (e.g., 3 or 4 clusters)
+# Assuming the elbow occurs at 4 clusters (adjust based on the plot)
+
+# Step 11: Apply K-Means clustering with the selected number of clusters
+kmeans = KMeans(n_clusters=4, init='k-means++', max_iter=300, n_init=10, random_state=42)
+y_kmeans = kmeans.fit_predict(scaled_features)
+
+# Step 12: Add the cluster labels to the original dataframe
+df['Cluster'] = y_kmeans
+
+# Step 13: Visualize the clusters
+# Since we have multiple dimensions, we will use PCA to reduce to 2 dimensions for visualization
+from sklearn.decomposition import PCA
+pca = PCA(n_components=2)
+principal_components = pca.fit_transform(scaled_features)
+
+df_pca = pd.DataFrame(data=principal_components, columns=['PC1', 'PC2'])
+df_pca['Cluster'] = y_kmeans
+
+plt.figure(figsize=(8, 6))
+sns.scatterplot(data=df_pca, x='PC1', y='PC2', hue='Cluster', palette='Set1', s=100)
+plt.title('Clusters of Credit Card Customers')
+plt.show()
+
+
+
+

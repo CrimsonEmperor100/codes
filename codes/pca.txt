@@ -1,0 +1,39 @@
+Assignment no 8
+Problem Statement : Implement PCA Feature extraction technique on any data set
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+from google.colab import files
+
+uploaded = files.upload()
+
+df = pd.read_csv(next(iter(uploaded)))
+
+print(df.head())
+
+print(df.columns)
+
+features = df.drop(columns=['species'])
+target = df['species']
+
+scaler = StandardScaler()
+scaled_features = scaler.fit_transform(features)
+
+pca = PCA(n_components=2)
+principal_components = pca.fit_transform(scaled_features)
+
+df_pca = pd.DataFrame(data=principal_components, columns=['PC1', 'PC2'])
+df_pca['species'] = target
+
+plt.figure(figsize=(8,6))
+sns.scatterplot(data=df_pca, x='PC1', y='PC2', hue='species', palette='Set2')
+plt.title('PCA on Iris Dataset')
+plt.show()
+
+print("Explained variance ratio:", pca.explained_variance_ratio_)
+
+
+

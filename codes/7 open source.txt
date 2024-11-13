@@ -1,0 +1,91 @@
+Assignment no 7
+Problem Statement : Perform the following operations using Python on any open source dataset 
+1. Import all the required Python Libraries. 
+2. Locate open source data from the web (e.g. https://www.kaggle.com). Provide a clear description of the data and its source (i.e., URL of the web site). 
+3. Load the Dataset into the pandas data frame. 
+4. Display the initial statistics. 
+5. Scan all variables for missing values and inconsistencies. If there are missing values and/or inconsistencies, use any of the suitable techniques to deal with them. 
+6. Scan all numeric variables for outliers. If there are outliers, use any of the suitable techniques to deal with them. 
+7. Apply data transformations on at least one of the variables. 
+8. Turn categorical variables into quantitative variables in Python
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.ensemble import IsolationForest
+from google.colab import files
+print("Please upload your dataset file (CSV format):")
+uploaded = files.upload()
+
+filename = list(uploaded.keys())[0]
+df = pd.read_csv(filename)
+print("\nDataset loaded successfully!")
+
+print("\nFirst few rows of the dataset:")
+print(df.head())
+
+print("\nInitial Statistics of the Dataset:")
+print(df.describe())
+
+print("\nChecking for missing values:")
+print(df.isnull().sum())
+
+if df.isnull().sum().sum() > 0:
+   df.fillna(df.mean(), inplace=True)
+   print("\nMissing values filled with the mean value.")
+
+print("\nVisualizing outliers using boxplots:")
+plt.figure(figsize=(10, 6))
+sns.boxplot(data=df.select_dtypes(include=np.number).drop(columns=['Id']), palette="Set2")
+plt.title('Boxplot to Detect Outliers in Numeric Variables')
+plt.show()
+
+print("\nDetecting outliers using Isolation Forest:")
+iso_forest = IsolationForest(contamination=0.1)
+outliers = iso_forest.fit_predict(df.select_dtypes(include=np.number).drop(columns=['Id']))
+
+df['Outlier'] = outliers
+df['Outlier'] = df['Outlier'].map({1: 'Inlier', -1: 'Outlier'})
+
+print("\nOutliers detected:")
+print(df[df['Outlier'] == 'Outlier'])
+
+df = df[df['Outlier'] == 'Inlier']
+
+print("\nStandardizing the numeric variables (excluding Id):")
+scaler = StandardScaler()
+
+numeric_cols = df.select_dtypes(include=np.number).columns.drop(['Id'])
+df_scaled = df.copy()
+df_scaled[numeric_cols] = scaler.fit_transform(df_scaled[numeric_cols])
+
+print("\nStandardized Data (first few rows):")
+print(df_scaled.head())
+
+print("\nConverting categorical variables (if any) into numerical format:")
+
+cat_columns = df_scaled.select_dtypes(include=['object']).columns
+encoder = LabelEncoder()
+
+for col in cat_columns:
+   df_scaled[col + '_encoded'] = encoder.fit_transform(df_scaled[col])
+
+print("\nData after converting categorical variables:")
+print(df_scaled.head())
+
+df_scaled.to_csv('cleaned_dataset.csv', index=False)
+print("\nCleaned and transformed dataset saved as 'cleaned_dataset.csv'")
+
+
+
+
+
+
+
+
+
+
+
+
+
